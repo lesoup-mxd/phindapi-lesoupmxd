@@ -16,10 +16,10 @@ class browser():
         self.driver = uc.Chrome(options=options)
         try:
             self.driver.get('https://staging.phind.com/')
-            self.driver.execute_script("localStorage.setItem('useDetailedAnswer', self.useDetailedAnswer)")
-            self.driver.execute_script("localStorage.setItem('useCreativeAnswer', self.useCreativeAnswer)")
+            self.driver.execute_script("localStorage.setItem('useDetailedAnswer', "+str(useDetailedAnswer).lower()+")")
+            self.driver.execute_script("localStorage.setItem('useCreativeAnswer', "+str(useCreativeAnswer).lower()+")")
         except Exception as exception:
-            exception.with_traceback()
+            print(exception.with_traceback())
     
     def search(self, query='',timeout=30):
         self.driver.get('https://staging.phind.com/search?q='+query)
