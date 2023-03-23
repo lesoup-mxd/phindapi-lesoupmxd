@@ -40,27 +40,28 @@ class browser():
         except:
             print('Search Timeout error. Time exceeded ', timeout, ' seconds.')
     
-    #search_stream function does not work yet
-    def search_stream(self, query='', timeout=10, max_elements=20,retries_max=10):
-        self.driver.get('https://staging.phind.com/search?q='+query)
+    #search_stream function does not work yet, to be fixed
+    def search_stream(self, query='', timeout=2.5, max_elements=20, retries_max=5):
+        self.driver.get('https://staging.phind.com/search?q=' + query)
         self.wait = WebDriverWait(self.driver, timeout)
-        retries=0
-        #Constantly search for elements until max_elements is reached or timeout is exceeded
+        retries = 0
+        # Constantly search for elements until max_elements is reached or timeout is exceeded
         for i in range(max_elements):
-            print('Searching for element ', i)
-            while retries<retries_max:
+            print('Searching for element ', i+1)
+            while retries < retries_max:
                 try:
-                    self.wait.until(EC.presence_of_element_located((By.XPATH, '/html/body/div/div[2]/div[2]/div[2]/div[1]/div/div[1]/div/div/span/*['+str(i)+']')))
-                    element = self.driver.find_element('xpath', '/html/body/div/div[2]/div[2]/div[2]/div[1]/div/div[1]/div/div/span/*['+str(i)+']').text
+                    self.wait.until(EC.presence_of_element_located((By.XPATH, '/html/body/div/div[2]/div[2]/div[2]/div[1]/div/div[1]/div/div/span/*[' + str(i+1) + ']')))
+                    element = self.driver.find_element('xpath', '/html/body/div/div[2]/div[2]/div[2]/div[1]/div/div[1]/div/div/span/*[' + str(i+1) + ']').text
                     print(element)
-                    if element!='':
-                        retries=0
-                    break
+                    if element != '':
+                        retries = 0
+                        break
                 except:
                     print('Element not found. Retrying in ', timeout, ' seconds.')
-                    retries+=1
-        if retries>=retries_max:
-            print('Search Timeout error. Time exceeded ', timeout, ' seconds.')
+                    retries += 1
+            if retries >= retries_max:
+                print('Search Timeout error. Time exceeded ', timeout, ' seconds.')
+                break
     
     #Test function to test average time to fetch
     def _search_average_test(self, query='', timeout=30, iterations=10, verbose=False):
