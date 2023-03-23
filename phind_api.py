@@ -1,3 +1,7 @@
+#Welcome to the Phind API. This is a python module that allows you to use the Phind search engine in your python scripts.
+
+#depends on undetected_chromedriver, selenium, time
+
 try:
     import undetected_chromedriver as uc
     from selenium.webdriver.common.by import By
@@ -8,7 +12,7 @@ except Exception as exception:
     exception.with_traceback()
 
 
-
+# Define the browser class
 class browser():
     def __init__(self, headless=True, useDetailedAnswer=False, useCreativeAnswer=True, Debug=False, DebugQuery='', DebugTimeout=30, DebugIterations=10, DebugVerbose=False):
         options = uc.ChromeOptions()
@@ -16,6 +20,7 @@ class browser():
             options.add_argument('--headless') 
         self.driver = uc.Chrome(options=options)
         try:
+            #Configure LocalStorage
             self.driver.get('https://staging.phind.com/')
             self.driver.execute_script("localStorage.setItem('useDetailedAnswer', "+str(useDetailedAnswer).lower()+")")
             self.driver.execute_script("localStorage.setItem('useCreativeAnswer', "+str(useCreativeAnswer).lower()+")")
@@ -24,7 +29,7 @@ class browser():
         if Debug:
             self._search_average_test(query=DebugQuery, timeout=DebugTimeout, iterations=DebugIterations, verbose=DebugVerbose)
             
-    
+    # Define the search function, which takes a query, timeout as arguments
     def search(self, query='',timeout=30):
         self.driver.get('https://staging.phind.com/search?q='+query)
         self.wait = WebDriverWait(self.driver, timeout)
@@ -34,10 +39,13 @@ class browser():
             return search_results
         except:
             print('Search Timeout error. Time exceeded ', timeout, ' seconds.')
+    
+    #search_stream function does not work yet
     def search_stream(self, query='', timeout=10, max_elements=20,retries_max=10):
         self.driver.get('https://staging.phind.com/search?q='+query)
         self.wait = WebDriverWait(self.driver, timeout)
         retries=0
+        #Constantly search for elements until max_elements is reached or timeout is exceeded
         for i in range(max_elements):
             print('Searching for element ', i)
             while retries<retries_max:
@@ -53,6 +61,8 @@ class browser():
                     retries+=1
         if retries>=retries_max:
             print('Search Timeout error. Time exceeded ', timeout, ' seconds.')
+    
+    #Test function to test average time to fetch
     def _search_average_test(self, query='', timeout=30, iterations=10, verbose=False):
         average_time=0
         exec_time=[]
@@ -74,12 +84,13 @@ class browser():
             
         return average_time
             
-
+    #Terminate the browser
     def close(self):
         self.driver.quit()
-    
+
+
+#If this module is run as a script, it will ask for a query to test average time to fetch
 if __name__ == '__main__':
-    
     query=input('You are running a python module as a script. Please enter a query to test average time to fetch:  ')
-    browser = browser(Debug=True, DebugQuery=query, DebugVerbose=True)
+    browser = browser(Debug=True, DebugQuery=query)
     browser.close()
