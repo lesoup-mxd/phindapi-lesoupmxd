@@ -10,7 +10,7 @@ except Exception as exception:
 
 
 class browser():
-    def __init__(self, headless=True, useDetailedAnswer=False, useCreativeAnswer=True):
+    def __init__(self, headless=True, useDetailedAnswer=False, useCreativeAnswer=True, Debug=False, DebugQuery='', DebugTimeout=30, DebugIterations=10, DebugVerbose=False):
         options = uc.ChromeOptions()
         if headless:
             options.add_argument('--headless') 
@@ -21,6 +21,9 @@ class browser():
             self.driver.execute_script("localStorage.setItem('useCreativeAnswer', "+str(useCreativeAnswer).lower()+")")
         except Exception as exception:
             exception.with_traceback()
+        if Debug:
+            self._search_average_test(query=DebugQuery, timeout=DebugTimeout, iterations=DebugIterations, verbose=DebugVerbose)
+            
     
     def search(self, query='',timeout=30):
         self.driver.get('https://staging.phind.com/search?q='+query)
@@ -50,20 +53,33 @@ class browser():
                     retries+=1
         if retries>=retries_max:
             print('Search Timeout error. Time exceeded ', timeout, ' seconds.')
+    def _search_average_test(self, query='', timeout=30, iterations=10, verbose=False):
+        average_time=0
+        exec_time=[]
+        
+        for i in range(iterations):
+            timer=time.time()
+            output=self.search(query=query, timeout=timeout)
+            timer=time.time()-timer
+            timer=timer.__round__(2)
+            exec_time.append(timer)
+            average_time+=timer
+            if verbose:
+                print('\nSearch output: ', output)
+                print('Time taken to fetch: ', timer)
+                
+        average_time=(average_time/iterations).__round__(2)
+        if verbose:
+            print('\n\nAverage time taken to fetch: ', average_time, ' seconds over ', iterations, ' iterations.')
+            
+        return average_time
             
 
     def close(self):
         self.driver.quit()
     
 if __name__ == '__main__':
-    browser = browser()
-    query=input('You are running a python module as a script. Please enter a query:  ')
-    '''timer=time.time()
-    search_results = browser.search(query=query, timeout=60)
-    timer=time.time()-timer
-    timer=str(timer.__round__(2))+' seconds'
-    print(search_results)
-    print('Time taken to fetch: ',timer)
-    '''
-    browser.search_stream(query=query, timeout=5, max_elements=20)
+    
+    query=input('You are running a python module as a script. Please enter a query to test average time to fetch:  ')
+    browser = browser(Debug=True, DebugQuery=query, DebugVerbose=True)
     browser.close()
