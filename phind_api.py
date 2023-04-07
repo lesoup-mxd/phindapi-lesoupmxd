@@ -3,6 +3,7 @@
 #depends on undetected_chromedriver, selenium, time
 
 try:
+
     import undetected_chromedriver as uc
     from selenium.webdriver.common.by import By
     from selenium.webdriver.support.ui import WebDriverWait
@@ -10,24 +11,43 @@ try:
     import time
 except Exception as exception:
     exception.with_traceback()
+    exit()
 
 
 # Define the browser class
 class browser():
-    def __init__(self, headless=True, useDetailedAnswer=False, useCreativeAnswer=True, Debug=False, DebugQuery='', DebugTimeout=30, DebugIterations=10, DebugVerbose=False):
+    def __init__(self,
+        headless=True, #whether to run the browser in GUI-less mode or not
+        useDetailedAnswer='Boolean', #useDetailedAnswer is deprecated, useConciseAnswer is the new option
+        
+        #Web search binding     #GPT4                #Shorten the answer
+        useCreativeAnswer=True, useExpertMode=False, useConciseAnswer=True,
+        
+        #Debug options
+            Debug=False, DebugQuery='', DebugTimeout=30, DebugIterations=10, DebugVerbose=False
+        ):
         options = uc.ChromeOptions()
+        
+        #Backward compatibility
+        if useDetailedAnswer==True:
+            useConciseAnswer=False
+        elif useDetailedAnswer==False:
+            useConciseAnswer=True
         if headless:
             options.add_argument('--headless') 
         self.driver = uc.Chrome(options=options)
+        
+        #Initilaisation, Configuration of LocalStorage
         try:
-            #Configure LocalStorage
             self.driver.get('https://staging.phind.com/')
-            self.driver.execute_script("localStorage.setItem('useDetailedAnswer', "+str(useDetailedAnswer).lower()+")")
+            #removed useDetailedAnswer as it is deprecated, using useConciseAnswer instead
+            self.driver.execute_script("localStorage.setItem('useDetailedAnswer', "+str(useConciseAnswer).lower()+")")
             self.driver.execute_script("localStorage.setItem('useCreativeAnswer', "+str(useCreativeAnswer).lower()+")")
+            self.driver.execute_script("localStorage.setItem('useExpertMode', "+str(useExpertMode).lower()+")")
         except Exception as exception:
             exception.with_traceback()
         if Debug:
-            self._search_average_test(query=DebugQuery, timeout=DebugTimeout, iterations=DebugIterations, verbose=DebugVerbose)
+            out = self._search_average_test(query=DebugQuery, timeout=DebugTimeout, iterations=DebugIterations, verbose=DebugVerbose)
             
     # Define the search function, which takes a query, timeout as arguments
     def search(self, query='',timeout=30):
@@ -93,5 +113,5 @@ class browser():
 #If this module is run as a script, it will ask for a query to test average time to fetch
 if __name__ == '__main__':
     query=input('You are running a python module as a script. Please enter a query to test average time to fetch:  ')
-    browser = browser(Debug=True, DebugQuery=query)
+    browser = browser(Debug=True, DebugQuery=query, headless=False, DebugVerbose=True)
     browser.close()
