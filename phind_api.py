@@ -33,6 +33,7 @@ class browser():
             useConciseAnswer=False
         elif useDetailedAnswer==False:
             useConciseAnswer=True
+            
         if headless:
             options.add_argument('--headless') 
         self.driver = uc.Chrome(options=options)
@@ -50,47 +51,36 @@ class browser():
             out = self._search_average_test(query=DebugQuery, timeout=DebugTimeout, iterations=DebugIterations, verbose=DebugVerbose)
             
     # Define the search function, which takes a query, timeout as arguments
-    def search(self, query='',timeout=30):
+    def search(self, query='',timeout=30,verbose=False):
         self.driver.get('https://staging.phind.com/search?q='+query)
         self.wait = WebDriverWait(self.driver, timeout)
         try:
-            self.wait.until(EC.presence_of_element_located((By.XPATH, '/html/body/div/div[2]/div[2]/div[2]/div[1]/div/div[1]/div/div/span')))
-            search_results = self.driver.find_element('xpath', '/html/body/div/div[2]/div[2]/div[2]/div[1]/div/div[1]/div/div/span').text
+            self.wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, '.col-lg-10 > div:nth-child(2) > div:nth-child(4) > div:nth-child(1) > div:nth-child(1) > span:nth-child(2)')))
+            search_results=''
+            while search_results=='':
+                search_results = self.driver.find_element(By.CSS_SELECTOR, '.col-lg-10 > div:nth-child(2) > div:nth-child(4) > div:nth-child(1) > div:nth-child(1) > span:nth-child(2)').text
+                time.sleep(timeout/10)
+            if verbose:
+                print('Parsing data stream...')
+            search_results_old = ''
+            while search_results!=search_results_old or search_results=='':
+                search_results_old = search_results
+                search_results = self.driver.find_element(By.CSS_SELECTOR, '.col-lg-10 > div:nth-child(2) > div:nth-child(4) > div:nth-child(1) > div:nth-child(1) > span:nth-child(2)').text
+                time.sleep(timeout/15)
             return search_results
         except:
-            print('Search Timeout error. Time exceeded ', timeout, ' seconds.')
+            print('Search Timeout error. Time exceeded timeout')
     
-    #search_stream function does not work yet, to be fixed
-    def search_stream(self, query='', timeout=2.5, max_elements=20, retries_max=5):
-        self.driver.get('https://staging.phind.com/search?q=' + query)
-        self.wait = WebDriverWait(self.driver, timeout)
-        retries = 0
-        # Constantly search for elements until max_elements is reached or timeout is exceeded
-        for i in range(max_elements):
-            print('Searching for element ', i+1)
-            while retries < retries_max:
-                try:
-                    self.wait.until(EC.presence_of_element_located((By.XPATH, '/html/body/div/div[2]/div[2]/div[2]/div[1]/div/div[1]/div/div/span/*[' + str(i+1) + ']')))
-                    element = self.driver.find_element('xpath', '/html/body/div/div[2]/div[2]/div[2]/div[1]/div/div[1]/div/div/span/*[' + str(i+1) + ']').text
-                    print(element)
-                    if element != '':
-                        retries = 0
-                        break
-                except:
-                    print('Element not found. Retrying in ', timeout, ' seconds.')
-                    retries += 1
-            if retries >= retries_max:
-                print('Search Timeout error. Time exceeded ', timeout, ' seconds.')
-                break
-    
-    #Test function to test average time to fetch
+    #search_stream function will not be implemented
+
+    #Debug function to test average time to fetch
     def _search_average_test(self, query='', timeout=30, iterations=10, verbose=False):
         average_time=0
         exec_time=[]
         
         for i in range(iterations):
             timer=time.time()
-            output=self.search(query=query, timeout=timeout)
+            output=self.search(query=query, timeout=timeout, verbose=verbose)
             timer=time.time()-timer
             timer=timer.__round__(2)
             exec_time.append(timer)
@@ -112,6 +102,9 @@ class browser():
 
 #If this module is run as a script, it will ask for a query to test average time to fetch
 if __name__ == '__main__':
-    query=input('You are running a python module as a script. Please enter a query to test average time to fetch:  ')
-    browser = browser(Debug=True, DebugQuery=query, headless=False, DebugVerbose=True)
+    query=input('You are running a python module as a script. Please enter a query to fetch: ')
+    print('Initialising spider...')
+    browser = browser()
+    print('Connecting...')
+    print(browser.search(query=query, verbose=True))
     browser.close()
