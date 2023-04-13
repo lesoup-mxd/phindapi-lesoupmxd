@@ -96,15 +96,24 @@ class browser():
         return average_time
             
     #Terminate the browser
-    def close(self):
+    def close(self,verbose=False):
+        if verbose:
+            print('Shutting down the spider...')
         self.driver.quit()
 
 
-#If this module is run as a script, it will ask for a query to test average time to fetch
+#If this module is ran as a script
 if __name__ == '__main__':
-    query=input('You are running a python module as a script. Please enter a query to fetch: ')
-    print('Initialising spider...')
+    try:
+        query=input('You are running a python module as a script. Please enter a query to fetch: ')
+    except:
+        exit()
+    print('Initialising the spider...')
     browser = browser()
-    print('Connecting...')
-    print(browser.search(query=query, verbose=True))
-    browser.close()
+    while True:
+        print('Connecting...')
+        print(browser.search(query=query, verbose=True))
+        query=input('Press enter to exit or enter a new query to fetch: ')
+        if query=='':
+            browser.close(verbose=True)
+            exit()
